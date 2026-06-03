@@ -9,6 +9,18 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
 ---
 
+## [Step 6] — 2026-06-04 · Final Polish (MVP)
+
+### Frontend (`src/`)
+- **Updated** `src/routes/index.tsx` (Dashboard):
+  - Changed the Target GPA card to act as a shortcut to `/analytics`.
+  - Replaced the `BarChart2` icon with the cleaner `BarChart` icon from `lucide-react` across the dashboard to perfectly match the BottomNav icons.
+  - Linked the "My Stats" quick-link directly to `/analytics`.
+- **Updated** `src/components/BottomNav.tsx`:
+  - Updated icons for the new routes: swapped `BarChart2` for `BarChart` (Stats) and `Crown` for `CreditCard` (Premium) to ensure a polished, consistent aesthetic.
+
+---
+
 ## [Step 5] — 2026-06-04 · Productivity Analytics (Premium Feature)
 
 ### Backend (`backend/`)

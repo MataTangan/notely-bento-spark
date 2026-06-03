@@ -1,13 +1,13 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, ListChecks, CalendarDays, Wrench, Crown, BarChart2 } from "lucide-react";
+import { Home, ListChecks, CalendarDays, Wrench, CreditCard, BarChart } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Home", icon: Home },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/schedule", label: "Schedule", icon: CalendarDays },
   { to: "/tools", label: "Tools", icon: Wrench },
-  { to: "/analytics", label: "Stats", icon: BarChart2 },
-  { to: "/billing", label: "Premium", icon: Crown },
+  { to: "/analytics", label: "Stats", icon: BarChart },
+  { to: "/billing", label: "Premium", icon: CreditCard },
 ] as const;
 
 

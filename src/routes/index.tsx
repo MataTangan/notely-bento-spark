@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Flame, BookOpen, Clock, ArrowUpRight, Calendar, Share2, Calculator, Sparkles } from "lucide-react";
+import { Flame, BookOpen, Clock, ArrowUpRight, Calendar, BarChart, Sparkles, CreditCard } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { QuickAdd } from "@/components/QuickAdd";
 import { PriorityPill } from "@/components/Priority";
@@ -46,7 +46,6 @@ function Dashboard() {
       
       const urgentTasks = upcomingTasks.filter((task: any) => {
         if (!task.due_date) return false;
-        // Interpret SQLModel datetime as UTC if necessary, but assuming local timezone match for simplicity
         const due = new Date(task.due_date);
         return due <= twoHoursFromNow && due >= now;
       });
@@ -74,7 +73,11 @@ function Dashboard() {
           </div>
         </div>
         <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-          You have <span className="font-semibold text-foreground">3 tasks</span> due today. Breathe — you've got this.
+          You have{" "}
+          <span className="font-semibold text-foreground">
+            {upcomingTasks?.length ?? "—"} task{upcomingTasks?.length !== 1 ? "s" : ""}
+          </span>{" "}
+          due in the next 24h. Breathe — you've got this.
         </p>
       </header>
 
@@ -117,17 +120,17 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* GPA */}
+        {/* Analytics shortcut — GPA card now links to /analytics */}
         <Link
-          to="/tools"
+          to="/analytics"
           className="col-span-3 bento bg-mint-soft transition-transform hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-mint">Target GPA</span>
-            <Calculator className="h-4 w-4 text-mint" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-mint">Analytics</span>
+            <BarChart className="h-4 w-4 text-mint" />
           </div>
-          <div className="mt-4 text-2xl font-bold text-ink">3.78</div>
-          <div className="mt-1 text-xs text-muted-foreground">On track · +0.12 this term</div>
+          <div className="mt-4 text-2xl font-bold text-ink">Stats</div>
+          <div className="mt-1 text-xs text-muted-foreground">Completion · priority split</div>
         </Link>
 
         {/* Smart tasks preview */}
@@ -158,22 +161,22 @@ function Dashboard() {
           </ul>
         </motion.div>
 
-        {/* Tools row */}
+        {/* Bottom quick-links */}
         <Link
-          to="/tools"
+          to="/analytics"
           className="col-span-3 bento bg-blue-soft transition-transform hover:scale-[1.01]"
         >
-          <Share2 className="h-5 w-5 text-blue" />
-          <div className="mt-3 text-base font-semibold text-ink">Share Task</div>
-          <div className="text-xs text-muted-foreground">Send to classmates</div>
+          <BarChart className="h-5 w-5 text-blue" />
+          <div className="mt-3 text-base font-semibold text-ink">My Stats</div>
+          <div className="text-xs text-muted-foreground">View productivity insights</div>
         </Link>
         <Link
-          to="/schedule"
-          className="col-span-3 bento bg-red-soft transition-transform hover:scale-[1.01]"
+          to="/billing"
+          className="col-span-3 bento bg-purple-soft transition-transform hover:scale-[1.01]"
         >
-          <Calendar className="h-5 w-5 text-red" />
-          <div className="mt-3 text-base font-semibold text-ink">SKS Calendar</div>
-          <div className="text-xs text-muted-foreground">Your week, simplified</div>
+          <CreditCard className="h-5 w-5 text-purple" />
+          <div className="mt-3 text-base font-semibold text-ink">Go Premium</div>
+          <div className="text-xs text-muted-foreground">Unlock all features</div>
         </Link>
       </section>
 
