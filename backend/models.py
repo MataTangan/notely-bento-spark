@@ -53,7 +53,7 @@ class TaskBase(SQLModel):
     priority: str = "medium"            # "high" | "medium" | "low"
     folder: Optional[str] = None        # e.g. "Math", "Physics"
     is_done: bool = False
-    due_at: Optional[datetime] = None
+    due_date: Optional[datetime] = None
 
 
 class Task(TaskBase, table=True):
@@ -75,7 +75,7 @@ class TaskUpdate(SQLModel):
     priority: Optional[str] = None
     folder: Optional[str] = None
     is_done: Optional[bool] = None
-    due_at: Optional[datetime] = None
+    due_date: Optional[datetime] = None
 
 
 class TaskRead(TaskBase):

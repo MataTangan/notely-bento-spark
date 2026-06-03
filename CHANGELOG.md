@@ -9,6 +9,30 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
 ---
 
+## [Step 5] — 2026-06-04 · Productivity Analytics (Premium Feature)
+
+### Backend (`backend/`)
+- **Added** `GET /api/analytics/stats` endpoint:
+  - Validates `user_id` and checks if the user is premium (`user.is_premium`).
+  - Returns a 403 Forbidden error if the user is not premium.
+  - Calculates total tasks, completed, and pending from `Task` table.
+  - Aggregates task priorities into a high/medium/low distribution.
+  - Calculates a 7-day completion history based on `updated_at`.
+
+### Frontend (`src/`)
+- **Added** `src/routes/analytics.tsx` (Analytics Route):
+  - Fetches `/api/analytics/stats` using TanStack Query.
+  - Displays a Premium Lock screen (403 fallback) if the user is not premium, prompting them to upgrade via `/billing`.
+  - Shows an animated Completion Rate progress bar.
+  - Includes a `recharts` BarChart for 7-day history and PieChart for priority distribution.
+  - UI styled with existing bento card patterns and brand colors (mint, purple, orange, blue, yellow).
+- **Updated** `src/components/BottomNav.tsx`:
+  - Added the **Stats** tab pointing to `/analytics` with `BarChart2` icon.
+- **Updated** `src/routeTree.gen.ts`:
+  - Registered the new `/analytics` route.
+
+---
+
 ## [Step 4] — 2026-06-04 · Premium Subscription & Billing Page
 
 ### Backend (`backend/`)

@@ -254,6 +254,69 @@ def delete_schedule_event(event_id: int, session: Session = Depends(get_session)
     session.commit()
 
 
+
+# ─── Analytics ───────────────────────────────────────────────────────────────
+
+@app.get("/api/analytics/stats", tags=["analytics"])
+def get_analytics_stats(
+    user_id: int = Query(..., description="ID of the authenticated user"),
+    session: Session = Depends(get_session),
+):
+    """Premium-only endpoint that returns productivity statistics for a user.
+
+    Returns 403 if the user does not have is_premium == True.
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.is_premium:
+        raise HTTPException(
+            status_code=403,
+            detail="Analytics is a Premium feature. Upgrade your plan to unlock it.",
+        )
+
+    tasks = session.exec(select(Task).where(Task.user_id == user_id)).all()
+
+    total = len(tasks)
+    completed = sum(1 for t in tasks if t.is_done)
+    pending = total - completed
+
+    priority_dist = {"high": 0, "medium": 0, "low": 0}
+    for t in tasks:
+        key = t.priority if t.priority in priority_dist else "medium"
+        priority_dist[key] += 1
+
+    # Build a 7-day daily completion histogram (keyed by YYYY-MM-DD)
+    today = datetime.utcnow().date()
+    daily: dict[str, int] = {}
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        daily[str(day)] = 0
+
+    for t in tasks:
+        if t.is_done and t.updated_at:
+            day_str = str(t.updated_at.date())
+            if day_str in daily:
+                daily[day_str] += 1
+
+    completion_history = [
+        {"date": day, "completed": count} for day, count in daily.items()
+    ]
+
+    return {
+        "user_id": user_id,
+        "total_tasks": total,
+        "completed": completed,
+        "pending": pending,
+        "priority_distribution": [
+            {"priority": "High",   "count": priority_dist["high"]},
+            {"priority": "Medium", "count": priority_dist["medium"]},
+            {"priority": "Low",    "count": priority_dist["low"]},
+        ],
+        "completion_history": completion_history,
+    }
+
+
 # ─── Subscriptions ────────────────────────────────────────────────────────────
 
 @app.get("/api/subscriptions/{user_id}", response_model=SubscriptionRead, tags=["subscriptions"])

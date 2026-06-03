@@ -13,6 +13,7 @@ import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as BillingRouteImport } from './routes/billing'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ToolsRoute = ToolsRouteImport.update({
@@ -35,6 +36,11 @@ const BillingRoute = BillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
+  fullPaths: '/' | '/analytics' | '/billing' | '/schedule' | '/tasks' | '/tools'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
-  id: '__root__' | '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
+  to: '/' | '/analytics' | '/billing' | '/schedule' | '/tasks' | '/tools'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/billing'
+    | '/schedule'
+    | '/tasks'
+    | '/tools'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   BillingRoute: typeof BillingRoute
   ScheduleRoute: typeof ScheduleRoute
   TasksRoute: typeof TasksRoute
@@ -109,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
   BillingRoute: BillingRoute,
   ScheduleRoute: ScheduleRoute,
   TasksRoute: TasksRoute,

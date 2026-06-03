@@ -4,6 +4,9 @@ import { Flame, BookOpen, Clock, ArrowUpRight, Calendar, Share2, Calculator, Spa
 import { BottomNav } from "@/components/BottomNav";
 import { QuickAdd } from "@/components/QuickAdd";
 import { PriorityPill } from "@/components/Priority";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +30,35 @@ const fadeUp = {
 };
 
 function Dashboard() {
+  const { data: upcomingTasks } = useQuery({
+    queryKey: ["tasks", "upcoming"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:8000/api/tasks/upcoming");
+      if (!res.ok) throw new Error("Failed to fetch upcoming tasks");
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (upcomingTasks && upcomingTasks.length > 0) {
+      const now = new Date();
+      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      
+      const urgentTasks = upcomingTasks.filter((task: any) => {
+        if (!task.due_date) return false;
+        // Interpret SQLModel datetime as UTC if necessary, but assuming local timezone match for simplicity
+        const due = new Date(task.due_date);
+        return due <= twoHoursFromNow && due >= now;
+      });
+
+      if (urgentTasks.length > 0) {
+        toast(`⚠️ ${urgentTasks.length} task(s) due soon!`, {
+          description: urgentTasks[0].title,
+        });
+      }
+    }
+  }, [upcomingTasks]);
+
   return (
     <main className="min-h-screen bg-background pb-44">
       <header className="px-5 pt-8">

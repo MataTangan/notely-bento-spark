@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
@@ -82,6 +83,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <Toaster 
+        position="bottom-center" 
+        toastOptions={{
+          className: "bg-card text-card-foreground border-border/60 shadow-pop",
+        }} 
+      />
     </QueryClientProvider>
   );
 }
