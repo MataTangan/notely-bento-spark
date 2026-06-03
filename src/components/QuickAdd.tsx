@@ -36,6 +36,7 @@ export function QuickAdd({ onAdd }: { onAdd?: (text: string) => void }) {
         title: values.title,
         priority: values.priority,
         due_at: values.due_date ? new Date(values.due_date).toISOString() : null,
+        user_id: 1,
       };
 
       const res = await fetch("/api/tasks", {

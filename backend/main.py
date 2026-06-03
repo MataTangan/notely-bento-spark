@@ -279,11 +279,13 @@ def get_analytics_stats(
     total = len(tasks)
     completed = sum(1 for t in tasks if t.is_done)
     pending = total - completed
+    completion_rate = round((completed / total) * 100) if total > 0 else 0
 
     priority_dist = {"high": 0, "medium": 0, "low": 0}
     for t in tasks:
-        key = t.priority if t.priority in priority_dist else "medium"
-        priority_dist[key] += 1
+        key = t.priority.lower() if t.priority else "medium"
+        if key in priority_dist:
+            priority_dist[key] += 1
 
     # Build a 7-day daily completion histogram (keyed by YYYY-MM-DD)
     today = datetime.utcnow().date()
@@ -305,7 +307,8 @@ def get_analytics_stats(
     return {
         "user_id": user_id,
         "total_tasks": total,
-        "completed": completed,
+        "completed_tasks": completed,
+        "completion_rate": completion_rate,
         "pending": pending,
         "priority_distribution": [
             {"priority": "High",   "count": priority_dist["high"]},

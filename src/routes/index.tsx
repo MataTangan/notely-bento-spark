@@ -45,8 +45,8 @@ function Dashboard() {
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const urgentTasks = upcomingTasks.filter((task: any) => {
-        if (!task.due_date) return false;
-        const due = new Date(task.due_date);
+        if (!task.due_at) return false;
+        const due = new Date(task.due_at);
         return due <= twoHoursFromNow && due >= now;
       });
 
@@ -142,20 +142,23 @@ function Dashboard() {
             </Link>
           </div>
           <ul className="mt-3 space-y-2">
-            {[
-              { title: "Submit Calculus pset", meta: "Due 6:00 PM", p: "high" as const },
-              { title: "Read Ch. 4 — Sociology", meta: "Tomorrow", p: "medium" as const },
-              { title: "Email Prof. Adams", meta: "This week", p: "low" as const },
-            ].map((t) => (
+            {upcomingTasks?.length === 0 && (
+              <li className="text-center text-xs text-muted-foreground py-4">No upcoming tasks!</li>
+            )}
+            {(upcomingTasks ?? []).slice(0, 4).map((t: any) => (
               <li
-                key={t.title}
+                key={t.id}
                 className="flex items-center justify-between rounded-2xl bg-secondary/60 px-3 py-3"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 pr-2">
                   <div className="truncate text-sm font-semibold text-ink">{t.title}</div>
-                  <div className="text-[11px] text-muted-foreground">{t.meta}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {t.due_at
+                      ? new Date(t.due_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                      : t.meta || "No due date"}
+                  </div>
                 </div>
-                <PriorityPill p={t.p} />
+                <PriorityPill p={t.priority as "high" | "medium" | "low"} />
               </li>
             ))}
           </ul>

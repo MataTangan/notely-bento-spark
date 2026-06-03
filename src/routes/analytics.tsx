@@ -45,7 +45,8 @@ const BAR_COLOR  = PALETTE.blue;
 interface AnalyticsStats {
   user_id: number;
   total_tasks: number;
-  completed: number;
+  completed_tasks: number;
+  completion_rate: number;
   pending: number;
   priority_distribution: { priority: string; count: number }[];
   completion_history: { date: string; completed: number }[];
@@ -263,7 +264,7 @@ function AnalyticsPage() {
           />
           <StatCard
             label="Completed"
-            value={data.completed}
+            value={data.completed_tasks}
             icon={CheckCircle2}
             bg="bg-mint-soft"
             accent="text-mint"
@@ -291,10 +292,7 @@ function AnalyticsPage() {
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold text-ink">Completion Rate</span>
               <span className="text-sm font-bold text-mint">
-                {data.total_tasks > 0
-                  ? Math.round((data.completed / data.total_tasks) * 100)
-                  : 0}
-                %
+                {data.completion_rate}%
               </span>
             </div>
             <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
@@ -302,13 +300,13 @@ function AnalyticsPage() {
                 className="h-full rounded-full bg-mint"
                 initial={{ width: 0 }}
                 animate={{
-                  width: `${data.total_tasks > 0 ? (data.completed / data.total_tasks) * 100 : 0}%`,
+                  width: `${data.completion_rate}%`,
                 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </div>
             <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-              <span>{data.completed} done</span>
+              <span>{data.completed_tasks} done</span>
               <span>{data.pending} remaining</span>
             </div>
           </motion.div>
