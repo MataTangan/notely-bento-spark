@@ -33,7 +33,7 @@ function Dashboard() {
   const { data: upcomingTasks } = useQuery({
     queryKey: ["tasks", "upcoming"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:8000/api/tasks/upcoming");
+      const res = await fetch("/api/tasks/upcoming");
       if (!res.ok) throw new Error("Failed to fetch upcoming tasks");
       return res.json();
     },

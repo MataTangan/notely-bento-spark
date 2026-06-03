@@ -1,9 +1,9 @@
 /**
  * Notely API client — thin wrapper around the FastAPI backend.
- * Base URL is read from VITE_API_URL env var (defaults to localhost:8000).
+ * Base URL is read from VITE_API_URL env var (defaults to empty string for relative paths).
  */
 
-const BASE = "http://localhost:8000";
+const BASE = "";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;

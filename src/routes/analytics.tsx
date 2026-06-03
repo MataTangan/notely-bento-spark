@@ -27,7 +27,7 @@ import { Lock, Crown, BarChart2, PieChart as PieIcon, CheckCircle2, Clock, ListC
 
 // ── Demo user ────────────────────────────────────────────────────────────────
 const DEMO_USER_ID = 1;
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const BASE = "";
 
 // ── Design-system colours (oklch mapped to hex for recharts) ─────────────────
 const PALETTE = {

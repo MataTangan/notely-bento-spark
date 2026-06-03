@@ -14,8 +14,11 @@ const formSchema = z.object({
   priority: z.string(),
 });
 
+import { useQueryClient } from "@tanstack/react-query";
+
 export function QuickAdd({ onAdd }: { onAdd?: (text: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,7 +38,7 @@ export function QuickAdd({ onAdd }: { onAdd?: (text: string) => void }) {
         due_at: values.due_date ? new Date(values.due_date).toISOString() : null,
       };
 
-      const res = await fetch("http://localhost:8000/api/tasks", {
+      const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -43,10 +46,14 @@ export function QuickAdd({ onAdd }: { onAdd?: (text: string) => void }) {
 
       if (res.ok) {
         form.reset();
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
         onAdd?.(values.title);
+      } else {
+        const err = await res.text();
+        console.error("Failed to add task", res.status, err);
       }
     } catch (error) {
-      console.error("Failed to add task", error);
+      console.error("Network error while adding task", error);
     } finally {
       setIsSubmitting(false);
     }

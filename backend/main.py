@@ -54,8 +54,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8080", "http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -163,10 +163,10 @@ def get_upcoming_tasks(
 ):
     now = datetime.utcnow()
     next_24h = now + timedelta(hours=24)
-    stmt = select(Task).where(Task.due_date >= now, Task.due_date <= next_24h, Task.is_done == False)
+    stmt = select(Task).where(Task.due_at >= now, Task.due_at <= next_24h, Task.is_done == False)
     if user_id is not None:
         stmt = stmt.where(Task.user_id == user_id)
-    stmt = stmt.order_by(Task.due_date.asc())
+    stmt = stmt.order_by(Task.due_at.asc())
     return session.exec(stmt).all()
 
 
