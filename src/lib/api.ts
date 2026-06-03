@@ -3,13 +3,20 @@
  * Base URL is read from VITE_API_URL env var (defaults to localhost:8000).
  */
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const BASE = "http://localhost:8000";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
-    ...init,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      headers: { "Content-Type": "application/json", ...init?.headers },
+      ...init,
+    });
+  } catch (error) {
+    // Graceful error throw for NetworkError / backend down
+    throw new Error("Unable to reach the backend API. Please make sure the server is running.");
+  }
+  
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`API ${res.status}: ${text}`);

@@ -148,6 +148,25 @@ function PremiumLock() {
   );
 }
 
+// ── Empty state ───────────────────────────────────────────────────────────────
+function EmptyAnalytics() {
+  return (
+    <motion.div
+      {...fadeUp}
+      transition={{ delay: 0.15 }}
+      className="bento col-span-6 flex flex-col items-center justify-center bg-card py-12 text-center"
+    >
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/80 text-muted-foreground shadow-sm">
+        <BarChart2 className="h-6 w-6 opacity-70" />
+      </div>
+      <h3 className="text-base font-bold text-ink">No Data Available</h3>
+      <p className="mt-1 max-w-[220px] text-xs text-muted-foreground">
+        Complete some tasks to unlock your productivity insights and trends.
+      </p>
+    </motion.div>
+  );
+}
+
 // ── Stat pill ─────────────────────────────────────────────────────────────────
 function StatCard({
   label,
@@ -259,8 +278,12 @@ function AnalyticsPage() {
             delay={0.1}
           />
 
-          {/* ── Completion rate progress bar ─────────────────────────── */}
-          <motion.div
+          {data.total_tasks === 0 ? (
+            <EmptyAnalytics />
+          ) : (
+            <>
+              {/* ── Completion rate progress bar ─────────────────────────── */}
+              <motion.div
             {...fadeUp}
             transition={{ delay: 0.12 }}
             className="bento col-span-6 bg-card"
@@ -352,7 +375,7 @@ function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={data.priority_distribution}
+                    data={data?.priority_distribution ?? []}
                     dataKey="count"
                     nameKey="priority"
                     cx="50%"
@@ -362,7 +385,7 @@ function AnalyticsPage() {
                     paddingAngle={3}
                     strokeWidth={0}
                   >
-                    {data.priority_distribution.map((_, idx) => (
+                    {(data?.priority_distribution ?? []).map((_, idx) => (
                       <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                     ))}
                   </Pie>
@@ -380,6 +403,8 @@ function AnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </motion.div>
+            </>
+          )}
 
         </section>
       )}
