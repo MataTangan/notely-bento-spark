@@ -1,12 +1,14 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, ListChecks, CalendarDays, Wrench } from "lucide-react";
+import { Home, ListChecks, CalendarDays, Wrench, Crown } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Home", icon: Home },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/schedule", label: "Schedule", icon: CalendarDays },
   { to: "/tools", label: "Tools", icon: Wrench },
+  { to: "/billing", label: "Premium", icon: Crown },
 ] as const;
+
 
 export function BottomNav() {
   const { pathname } = useLocation();

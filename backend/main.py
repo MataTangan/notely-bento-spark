@@ -5,7 +5,7 @@ Run: uvicorn main:app --reload --port 8000
 
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from database import create_db_and_tables, get_session
@@ -54,7 +54,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN, "http://localhost:3000"],
+    allow_origins=[FRONTEND_ORIGIN, "http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,6 +92,37 @@ def get_user(user_id: int, session: Session = Depends(get_session)):
     return user
 
 
+@app.post("/api/users/{user_id}/upgrade", response_model=UserRead, tags=["users"])
+def upgrade_user(user_id: int, session: Session = Depends(get_session)):
+    """Simulate a successful premium payment — sets is_premium=True on the user
+    and upserts the subscriptions row to plan='pro'."""
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Toggle premium flag
+    user.is_premium = True
+    session.add(user)
+
+    # Upsert subscription record
+    sub = session.exec(select(Subscription).where(Subscription.user_id == user_id)).first()
+    if sub:
+        sub.plan = "pro"
+        sub.status = "active"
+        sub.renews_at = datetime.utcnow() + timedelta(days=30)
+    else:
+        sub = Subscription(
+            user_id=user_id,
+            plan="pro",
+            status="active",
+            renews_at=datetime.utcnow() + timedelta(days=30),
+        )
+    session.add(sub)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
 # ─── Tasks ────────────────────────────────────────────────────────────────────
 
 @app.get("/api/tasks", response_model=List[TaskRead], tags=["tasks"])
@@ -123,6 +154,20 @@ def create_task(task_in: TaskCreate, session: Session = Depends(get_session)):
     session.commit()
     session.refresh(task)
     return task
+
+
+@app.get("/api/tasks/upcoming", response_model=List[TaskRead], tags=["tasks"])
+def get_upcoming_tasks(
+    user_id: Optional[int] = Query(default=None),
+    session: Session = Depends(get_session)
+):
+    now = datetime.utcnow()
+    next_24h = now + timedelta(hours=24)
+    stmt = select(Task).where(Task.due_date >= now, Task.due_date <= next_24h, Task.is_done == False)
+    if user_id is not None:
+        stmt = stmt.where(Task.user_id == user_id)
+    stmt = stmt.order_by(Task.due_date.asc())
+    return session.exec(stmt).all()
 
 
 @app.get("/api/tasks/{task_id}", response_model=TaskRead, tags=["tasks"])

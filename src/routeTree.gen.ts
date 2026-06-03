@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ToolsRoute = ToolsRouteImport.update({
@@ -29,6 +30,11 @@ const ScheduleRoute = ScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
   '/tools': typeof ToolsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
   '/tools': typeof ToolsRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/schedule': typeof ScheduleRoute
   '/tasks': typeof TasksRoute
   '/tools': typeof ToolsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/schedule' | '/tasks' | '/tools'
+  fullPaths: '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/schedule' | '/tasks' | '/tools'
-  id: '__root__' | '/' | '/schedule' | '/tasks' | '/tools'
+  to: '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
+  id: '__root__' | '/' | '/billing' | '/schedule' | '/tasks' | '/tools'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BillingRoute: typeof BillingRoute
   ScheduleRoute: typeof ScheduleRoute
   TasksRoute: typeof TasksRoute
   ToolsRoute: typeof ToolsRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BillingRoute: BillingRoute,
   ScheduleRoute: ScheduleRoute,
   TasksRoute: TasksRoute,
   ToolsRoute: ToolsRoute,

@@ -102,3 +102,20 @@ export const scheduleApi = {
     return apiFetch<ScheduleEvent[]>(`/api/schedule${query ? `?${query}` : ""}`);
   },
 };
+
+// ─── Users API ────────────────────────────────────────────────────────────────
+
+export interface User {
+  id: number;
+  email: string;
+  display_name: string;
+  avatar_url: string | null;
+  is_premium: boolean;
+  created_at: string;
+}
+
+export const usersApi = {
+  get: (id: number) => apiFetch<User>(`/api/users/${id}`),
+  upgrade: (id: number) =>
+    apiFetch<User>(`/api/users/${id}/upgrade`, { method: "POST" }),
+};
