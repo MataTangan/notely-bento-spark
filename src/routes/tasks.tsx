@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
-import { useState } from "react";
+import { Check, Loader2, AlertCircle } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { QuickAdd } from "@/components/QuickAdd";
 import { priorityStyles, type Priority } from "@/components/Priority";
+import { tasksApi, type Task } from "@/lib/api";
 
 export const Route = createFileRoute("/tasks")({
   head: () => ({
@@ -18,17 +19,6 @@ export const Route = createFileRoute("/tasks")({
   component: TasksPage,
 });
 
-type Task = { id: string; title: string; meta: string; p: Priority; folder: string };
-
-const seed: Task[] = [
-  { id: "1", title: "Submit Calculus pset #6", meta: "Today · 6:00 PM", p: "high", folder: "Math" },
-  { id: "2", title: "Lab report — Newton's laws", meta: "Tomorrow · 9:00 AM", p: "high", folder: "Physics" },
-  { id: "3", title: "Read Ch. 4 — Sociology", meta: "Wed · before class", p: "medium", folder: "Sociology" },
-  { id: "4", title: "Group meet: Final project", meta: "Thu · 4:00 PM", p: "medium", folder: "CS101" },
-  { id: "5", title: "Email Prof. Adams about extension", meta: "This week", p: "low", folder: "Admin" },
-  { id: "6", title: "Tidy lecture notes", meta: "Whenever", p: "low", folder: "Personal" },
-];
-
 const folderColors: Record<string, string> = {
   Math: "bg-orange-soft text-orange",
   Physics: "bg-yellow-soft text-orange",
@@ -38,9 +28,56 @@ const folderColors: Record<string, string> = {
   Personal: "bg-red-soft text-red",
 };
 
+const PRIORITY_ORDER: Priority[] = ["high", "medium", "low"];
+
 function TasksPage() {
-  const [done, setDone] = useState<Set<string>>(new Set());
-  const groups: Priority[] = ["high", "medium", "low"];
+  const queryClient = useQueryClient();
+
+  const {
+    data: tasks = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.list(),
+  });
+
+  const toggleDone = useMutation({
+    mutationFn: (task: Task) =>
+      tasksApi.update(task.id, { is_done: !task.is_done }),
+    onMutate: async (task) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previous = queryClient.getQueryData<Task[]>(["tasks"]);
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+        old.map((t) => (t.id === task.id ? { ...t, is_done: !t.is_done } : t)),
+      );
+      return { previous };
+    },
+    onError: (_err, _task, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["tasks"], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+  });
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+        <AlertCircle className="h-10 w-10 text-red" />
+        <p className="text-sm font-medium text-ink">Couldn't load tasks</p>
+        <p className="text-xs text-muted-foreground">{(error as Error).message}</p>
+        <p className="text-xs text-muted-foreground">Make sure the backend is running on port 8000.</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background pb-44">
@@ -48,13 +85,14 @@ function TasksPage() {
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Smart Tasks</p>
         <h1 className="mt-1 text-3xl font-bold text-ink">Auto-prioritized</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Notely sorted {seed.length} tasks for you based on deadlines & impact.
+          Notely sorted {tasks.length} tasks for you based on deadlines &amp; impact.
         </p>
       </header>
 
       <section className="mt-6 space-y-6 px-5">
-        {groups.map((p) => {
-          const items = seed.filter((t) => t.p === p);
+        {PRIORITY_ORDER.map((p) => {
+          const items = tasks.filter((t) => t.priority === p);
+          if (items.length === 0) return null;
           const s = priorityStyles[p];
           const dashed = p === "high" ? "border-2 border-dashed border-red/40" : "";
           return (
@@ -66,7 +104,8 @@ function TasksPage() {
               </div>
               <ul className="space-y-2.5">
                 {items.map((t, i) => {
-                  const isDone = done.has(t.id);
+                  const isDone = t.is_done;
+                  const folderKey = t.folder ?? "";
                   return (
                     <motion.li
                       key={t.id}
@@ -77,13 +116,7 @@ function TasksPage() {
                     >
                       <div className="flex items-start gap-3">
                         <button
-                          onClick={() =>
-                            setDone((prev) => {
-                              const n = new Set(prev);
-                              n.has(t.id) ? n.delete(t.id) : n.add(t.id);
-                              return n;
-                            })
-                          }
+                          onClick={() => toggleDone.mutate(t)}
                           className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                             isDone ? "border-ink bg-ink text-background" : "border-ink/30 bg-card"
                           }`}
@@ -100,13 +133,15 @@ function TasksPage() {
                             {t.title}
                           </div>
                           <div className="mt-1 flex items-center gap-2">
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                folderColors[t.folder]
-                              }`}
-                            >
-                              {t.folder}
-                            </span>
+                            {folderKey && (
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                  folderColors[folderKey] ?? "bg-card text-ink"
+                                }`}
+                              >
+                                {folderKey}
+                              </span>
+                            )}
                             <span className="text-[11px] text-muted-foreground">{t.meta}</span>
                           </div>
                         </div>
