@@ -101,7 +101,7 @@ function PaymentModal({
         <div className="rounded-2xl bg-purple-soft px-4 py-3 mb-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-purple">Notely Premium</span>
-            <span className="text-sm font-bold text-ink">$4.99<span className="text-[11px] font-normal text-muted-foreground">/mo</span></span>
+            <span className="text-sm font-bold text-ink">Rp20.000<span className="text-[11px] font-normal text-muted-foreground">/mo</span></span>
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">Billed monthly · Cancel anytime</div>
         </div>
@@ -118,7 +118,7 @@ function PaymentModal({
           disabled={loading}
           className="w-full rounded-2xl bg-ink py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-ink/90 disabled:opacity-60 mb-2"
         >
-          {loading ? "Processing…" : "Pay $4.99 — Upgrade Now"}
+          {loading ? "Processing…" : "Pay Rp20.000 — Upgrade Now"}
         </button>
         <button
           id="billing-cancel-payment"
@@ -215,7 +215,7 @@ function BillingPage() {
             )}
           </div>
           <div className="mt-3 text-3xl font-bold text-ink">
-            $0
+            Rp0
             <span className="text-sm font-normal text-muted-foreground"> /mo</span>
           </div>
           <ul className="mt-4 space-y-2">
@@ -247,7 +247,7 @@ function BillingPage() {
             <Crown className="h-3.5 w-3.5 text-purple" />
           </div>
           <div className="mt-3 text-3xl font-bold text-ink">
-            $4.99
+            Rp20.000
             <span className="text-sm font-normal text-muted-foreground"> /mo</span>
           </div>
           <ul className="mt-4 space-y-2">

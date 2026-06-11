@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from database import create_db_and_tables, get_session
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from models import (
     ScheduleEvent,
@@ -336,3 +336,114 @@ def create_subscription(sub_in: SubscriptionCreate, session: Session = Depends(g
     session.commit()
     session.refresh(sub)
     return sub
+
+
+# ─── AI Agent ─────────────────────────────────────────────────────────────────
+
+@app.post("/api/agent/extract", tags=["agent"])
+async def agent_extract(
+    message: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    session: Session = Depends(get_session),
+):
+    """Mock AI agent that simulates LLM-powered task extraction."""
+    if not message and not file:
+        raise HTTPException(status_code=400, detail="Kirim pesan atau file untuk diproses.")
+
+    now = datetime.utcnow()
+    tomorrow = now + timedelta(days=1)
+
+    if file:
+        # Simulate OCR / document intelligence extraction
+        filename = file.filename or "dokumen"
+        task_title = f"Review: {filename.rsplit('.', 1)[0]}"
+        due = tomorrow
+        priority = "high"
+
+        task = Task(title=task_title, priority=priority, due_at=due, user_id=1)
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+
+        due_str = due.strftime("%A, %d %B %Y")
+        reply = (
+            f"📄 **Dokumen berhasil dipindai!**\n\n"
+            f"Saya telah menganalisis file `{filename}` dan membuat tugas berikut:\n\n"
+            f"• **Nama tugas:** {task_title}\n"
+            f"• **Prioritas:** 🔴 {priority.capitalize()}\n"
+            f"• **Deadline:** {due_str}\n\n"
+            f"_Tugas otomatis dijadwalkan berdasarkan hasil ekstraksi dokumen._"
+        )
+        return {"reply": reply, "task_added": True}
+
+    # ── Text message — simulate NLU extraction ────────────────────────────
+    text = message.strip()
+    text_lower = text.lower()
+
+    # ── DEMO MOCKUP: hardcoded showcase input ─────────────────────────────
+    if "tugas kalkulus" in text_lower and "projek akhir" in text_lower:
+        demo_title = "Tugas Kalkulus — Projek Akhir"
+        demo_priority = "high"
+        demo_due = datetime(2026, 6, 10, 23, 59, 0)
+
+        task = Task(title=demo_title, priority=demo_priority, due_at=demo_due, user_id=1)
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+
+        reply = (
+            "✅ **Tugas berhasil dibuat!**\n\n"
+            "Saya telah menganalisis pesan Anda dan membuat tugas berikut:\n\n"
+            "• **Nama tugas:** Tugas Kalkulus — Projek Akhir\n"
+            "• **Prioritas:** 🔴 High — _Terdeteksi kata kunci urgensi tinggi_\n"
+            "• **Deadline:** Wednesday, 10 June 2026\n\n"
+            "_Tugas sudah masuk ke dashboard dan jadwal Anda._"
+        )
+        return {"reply": reply, "task_added": True}
+
+    # ── Generic keyword-based NLU (fallback) ──────────────────────────────
+
+    # Simple keyword-based priority detection (simulating LLM reasoning)
+    if any(kw in text_lower for kw in ["urgent", "penting", "segera", "deadline", "ujian", "exam", "uts", "uas"]):
+        priority = "high"
+        priority_reason = "Terdeteksi kata kunci urgensi tinggi"
+        priority_emoji = "🔴"
+    elif any(kw in text_lower for kw in ["tugas", "pr", "homework", "assignment", "kerjakan", "submit"]):
+        priority = "medium"
+        priority_reason = "Terdeteksi sebagai tugas reguler"
+        priority_emoji = "🟡"
+    else:
+        priority = "low"
+        priority_reason = "Tidak ada indikator urgensi"
+        priority_emoji = "🟢"
+
+    # Simple deadline detection (simulating LLM date parsing)
+    if any(kw in text_lower for kw in ["besok", "tomorrow"]):
+        due = tomorrow
+        deadline_note = "besok"
+    elif any(kw in text_lower for kw in ["lusa", "day after tomorrow"]):
+        due = now + timedelta(days=2)
+        deadline_note = "lusa"
+    elif any(kw in text_lower for kw in ["minggu depan", "next week"]):
+        due = now + timedelta(weeks=1)
+        deadline_note = "minggu depan"
+    else:
+        due = now
+        deadline_note = "hari ini"
+
+    task = Task(title=text, priority=priority, due_at=due, user_id=1)
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+
+    due_str = due.strftime("%A, %d %B %Y")
+    reply = (
+        f"✅ **Tugas berhasil dibuat!**\n\n"
+        f"Saya telah menganalisis pesan Anda dan membuat tugas berikut:\n\n"
+        f"• **Nama tugas:** {text}\n"
+        f"• **Prioritas:** {priority_emoji} {priority.capitalize()} — _{priority_reason}_\n"
+        f"• **Deadline:** {due_str} ({deadline_note})\n\n"
+        f"_Tugas sudah masuk ke dashboard dan jadwal Anda._"
+    )
+    return {"reply": reply, "task_added": True}
+
